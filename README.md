@@ -9,7 +9,7 @@ bun install
 bun dev
 ```
 
-Open `http://localhost:3000` and allow camera access. Raise both hands and hold to begin. During each question, participants move to the left or right side of the camera frame; the game counts the group, chooses the majority side, and locks the result after the countdown. The webcam image is never displayed or uploaded—pose processing happens locally in the browser.
+Open `http://localhost:3000` and allow camera access. Raise both hands and hold to begin. During each question, participants move to the left or right side of the camera frame; the game counts detected people by their bounding-box centers, chooses the majority side, and locks the result after the countdown. Pose landmarks are used only for the start gesture. Person detection runs locally in the browser, and the webcam image is never uploaded.
 
 Keyboard controls remain available as an operator fallback: left/right arrows select, Space locks, Enter advances, `R` replays video, `O` opens the operator HUD, and Escape resets.
 

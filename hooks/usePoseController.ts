@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FilesetResolver,
+  ObjectDetector,
   PoseLandmarker,
   type NormalizedLandmark,
 } from "@mediapipe/tasks-vision";
@@ -19,7 +20,7 @@ export type CameraStatus =
 export interface DetectedPlayer {
   id: number;
   centerX: number;
-  landmarks: NormalizedLandmark[];
+  box: { x: number; y: number; width: number; height: number };
 }
 
 export interface PoseControllerResult {
@@ -37,6 +38,7 @@ export interface PoseControllerResult {
 const START_HOLD_MS = 1200;
 const SIDE_HOLD_MS = 1600;
 const FRAME_INTERVAL_MS = 90;
+const PERSON_SCORE_THRESHOLD = .35;
 
 function handsRaised(points: NormalizedLandmark[]) {
   const nose = points[0];
@@ -67,6 +69,9 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
   const videoRef = useRef<HTMLVideoElement>(null);
   const sceneRef = useRef(scene);
   const landmarkerRef = useRef<PoseLandmarker | null>(null);
+  const objectDetectorRef = useRef<ObjectDetector | null>(null);
+  const taskModeRef = useRef<"pose" | "object" | null>(null);
+  const taskLoadingRef = useRef(false);
   const streamRef = useRef<MediaStream | null>(null);
   const frameRef = useRef<number | null>(null);
   const lastFrameRef = useRef(0);
@@ -90,6 +95,10 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
     streamRef.current = null;
     landmarkerRef.current?.close();
     landmarkerRef.current = null;
+    objectDetectorRef.current?.close();
+    objectDetectorRef.current = null;
+    taskModeRef.current = null;
+    taskLoadingRef.current = false;
   }, []);
 
   const startCamera = useCallback(async () => {
@@ -118,7 +127,7 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
         return;
       }
 
-      const options = {
+      const poseOptions = {
         baseOptions: {
           modelAssetPath: "/mediapipe/models/pose_landmarker_lite.task",
           delegate: "GPU" as const,
@@ -132,11 +141,11 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
       };
       let landmarker: PoseLandmarker;
       try {
-        landmarker = await PoseLandmarker.createFromOptions(vision, options);
+        landmarker = await PoseLandmarker.createFromOptions(vision, poseOptions);
       } catch {
         landmarker = await PoseLandmarker.createFromOptions(vision, {
-          ...options,
-          baseOptions: { ...options.baseOptions, delegate: "CPU" },
+          ...poseOptions,
+          baseOptions: { ...poseOptions.baseOptions, delegate: "CPU" },
         });
       }
       if (runId !== runIdRef.current) {
@@ -146,6 +155,7 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
       }
 
       landmarkerRef.current = landmarker;
+      taskModeRef.current = "pose";
       streamRef.current = stream;
       const video = videoRef.current;
       if (!video) throw new Error("Camera element is unavailable");
@@ -157,19 +167,114 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
         if (runId !== runIdRef.current) return;
         frameRef.current = requestAnimationFrame(detect);
         const activeVideo = videoRef.current;
-        const activeLandmarker = landmarkerRef.current;
-        if (!activeVideo || !activeLandmarker || activeVideo.readyState < 2) return;
+        if (!activeVideo || activeVideo.readyState < 2) return;
         const activeScene = sceneRef.current;
-        if (activeScene !== "start" && activeScene !== "question" && activeScene !== "countdown") return;
+        if (activeScene !== "start" && activeScene !== "video" && activeScene !== "question" && activeScene !== "countdown") return;
+
+        const targetMode = activeScene === "start" ? "pose" : "object";
+        if (taskModeRef.current !== targetMode && !taskLoadingRef.current) {
+          taskLoadingRef.current = true;
+          landmarkerRef.current?.close();
+          landmarkerRef.current = null;
+          objectDetectorRef.current?.close();
+          objectDetectorRef.current = null;
+          void (async () => {
+            try {
+              if (targetMode === "object") {
+                const options = {
+                  baseOptions: {
+                    modelAssetPath: "/mediapipe/models/efficientdet_lite0.tflite",
+                    delegate: "GPU" as const,
+                  },
+                  runningMode: "VIDEO" as const,
+                  categoryAllowlist: ["person"],
+                  maxResults: 20,
+                  scoreThreshold: PERSON_SCORE_THRESHOLD,
+                };
+                let detector: ObjectDetector;
+                try {
+                  detector = await ObjectDetector.createFromOptions(vision, options);
+                } catch {
+                  detector = await ObjectDetector.createFromOptions(vision, {
+                    ...options,
+                    baseOptions: { ...options.baseOptions, delegate: "CPU" },
+                  });
+                }
+                if (runId !== runIdRef.current) detector.close();
+                else {
+                  objectDetectorRef.current = detector;
+                  taskModeRef.current = "object";
+                }
+              } else {
+                let nextLandmarker: PoseLandmarker;
+                try {
+                  nextLandmarker = await PoseLandmarker.createFromOptions(vision, poseOptions);
+                } catch {
+                  nextLandmarker = await PoseLandmarker.createFromOptions(vision, {
+                    ...poseOptions,
+                    baseOptions: { ...poseOptions.baseOptions, delegate: "CPU" },
+                  });
+                }
+                if (runId !== runIdRef.current) nextLandmarker.close();
+                else {
+                  landmarkerRef.current = nextLandmarker;
+                  taskModeRef.current = "pose";
+                }
+              }
+            } catch (error) {
+              console.error("Unable to switch camera detection mode", error);
+              setStatus("error");
+            } finally {
+              taskLoadingRef.current = false;
+            }
+          })();
+          return;
+        }
+        if (taskModeRef.current !== targetMode) return;
+        if (activeScene === "video") return;
         if (time - lastFrameRef.current < FRAME_INTERVAL_MS) return;
         lastFrameRef.current = time;
 
-        const result = activeLandmarker.detectForVideo(activeVideo, performance.now());
-        const nextPlayers = result.landmarks.map((landmarks, id) => ({
-          id,
-          centerX: getCenterX(landmarks),
-          landmarks,
-        }));
+        let nextPlayers: DetectedPlayer[] = [];
+        if (activeScene === "start") {
+          const activeLandmarker = landmarkerRef.current;
+          if (!activeLandmarker) return;
+          const result = activeLandmarker.detectForVideo(activeVideo, performance.now());
+          nextPlayers = result.landmarks.map((landmarks, id) => ({
+            id,
+            centerX: getCenterX(landmarks),
+            box: { x: 0, y: 0, width: 0, height: 0 },
+          }));
+          const raised = result.landmarks.some(handsRaised);
+          if (raised) {
+            startSinceRef.current ??= time;
+            setStartProgress(Math.min(1, (time - startSinceRef.current) / START_HOLD_MS));
+          } else {
+            startSinceRef.current = null;
+            setStartProgress(0);
+          }
+        } else {
+          const activeDetector = objectDetectorRef.current;
+          if (!activeDetector) return;
+          const result = activeDetector.detectForVideo(activeVideo, performance.now());
+          nextPlayers = result.detections.flatMap((detection, id) => {
+            const box = detection.boundingBox;
+            if (!box || !detection.categories.some((category) => category.categoryName === "person")) return [];
+            const centerX = 1 - (box.originX + box.width / 2) / activeVideo.videoWidth;
+            return [{
+              id,
+              centerX,
+              box: {
+                x: box.originX / activeVideo.videoWidth,
+                y: box.originY / activeVideo.videoHeight,
+                width: box.width / activeVideo.videoWidth,
+                height: box.height / activeVideo.videoHeight,
+              },
+            }];
+          });
+          startSinceRef.current = null;
+          setStartProgress(0);
+        }
         setPlayers(nextPlayers);
 
         const nextLeft = nextPlayers.filter((player) => player.centerX < .47).length;
@@ -179,20 +284,6 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
         setLeftCount(nextLeft);
         setRightCount(nextRight);
         setDominantSide(nextSide);
-
-        if (activeScene === "start") {
-          const raised = nextPlayers.some((player) => handsRaised(player.landmarks));
-          if (raised) {
-            startSinceRef.current ??= time;
-            setStartProgress(Math.min(1, (time - startSinceRef.current) / START_HOLD_MS));
-          } else {
-            startSinceRef.current = null;
-            setStartProgress(0);
-          }
-        } else {
-          startSinceRef.current = null;
-          setStartProgress(0);
-        }
 
         if ((activeScene === "question" || activeScene === "countdown") && nextSide) {
           if (lastSideRef.current !== nextSide) {
