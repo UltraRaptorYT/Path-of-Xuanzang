@@ -16,6 +16,8 @@ import { StartScene } from "./StartScene";
 import { VideoScene } from "./VideoScene";
 
 const JOURNEY_DISPLAY_MS = 15_000;
+const LOCKED_SELECTION_HOLD_MS = 1_000;
+const RESULT_HOLD_AFTER_SOUND_MS = 2_000;
 
 export function GameController() {
   useKeyboardControls();
@@ -42,6 +44,7 @@ export function GameController() {
   const backgroundAudioRef = useRef<HTMLAudioElement>(null);
   const [videoStatus, setVideoStatus] = useState("idle");
   const [journeySecondsRemaining, setJourneySecondsRemaining] = useState(JOURNEY_DISPLAY_MS / 1000);
+  const [lockedResultsVisible, setLockedResultsVisible] = useState(false);
   const round = station1Rounds[currentRound];
 
   const startBackgroundAudio = useCallback(() => {
@@ -96,6 +99,18 @@ export function GameController() {
   }, [currentScene, countdown, selectedSide, lockChoice, setCountdown]);
 
   useEffect(() => {
+    if (currentScene !== "locked") {
+      setLockedResultsVisible(false);
+      return;
+    }
+    const timer = window.setTimeout(
+      () => setLockedResultsVisible(true),
+      LOCKED_SELECTION_HOLD_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [currentScene, currentRound]);
+
+  useEffect(() => {
     if (currentScene !== "locked" || !round || !selectedSide) return;
 
     const isCorrect = round.correctSide == null || selectedSide === round.correctSide;
@@ -103,21 +118,24 @@ export function GameController() {
     sound.volume = 0.28;
     let finished = false;
     let playFailureFallback: number | undefined;
+    let revealTimer: number | undefined;
     const reveal = () => {
       if (finished) return;
       finished = true;
-      setScene("reveal");
+      revealTimer = window.setTimeout(() => setScene("reveal"), RESULT_HOLD_AFTER_SOUND_MS);
     };
-    const fallback = window.setTimeout(reveal, 6000);
+    const fallback = window.setTimeout(reveal, 9000);
+    const soundStartTimer = window.setTimeout(() => void sound.play().catch(() => {
+      playFailureFallback = window.setTimeout(reveal, 700);
+    }), LOCKED_SELECTION_HOLD_MS);
     sound.addEventListener("ended", reveal, { once: true });
     sound.addEventListener("error", reveal, { once: true });
-    void sound.play().catch(() => {
-      playFailureFallback = window.setTimeout(reveal, 700);
-    });
 
     return () => {
       window.clearTimeout(fallback);
+      window.clearTimeout(soundStartTimer);
       if (playFailureFallback !== undefined) window.clearTimeout(playFailureFallback);
+      if (revealTimer !== undefined) window.clearTimeout(revealTimer);
       sound.pause();
       sound.removeEventListener("ended", reveal);
       sound.removeEventListener("error", reveal);
@@ -186,7 +204,7 @@ export function GameController() {
             roundNumber={currentRound + 1}
             totalRounds={station1Rounds.length}
             selected={selectedSide}
-            showGlobalResults={currentScene === "locked"}
+            showGlobalResults={currentScene === "locked" && lockedResultsVisible}
             globalVotes={voteSummaries[round.id] ?? null}
             countdown={countdown}
             isCounting={currentScene === "countdown"}

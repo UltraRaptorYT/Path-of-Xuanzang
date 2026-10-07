@@ -101,7 +101,7 @@ export function QuestionScene({
         {showGlobalResults ? (
           <div className="total-votes" aria-live="polite">
             <b>{globalVotes ? globalTotal.toLocaleString() : "—"}</b>
-            <span>TOTAL GLOBAL VOTES</span>
+            <span>TOTAL VOTES</span>
           </div>
         ) : isCounting ? <Countdown value={countdown} /> : null}
         <div className={selected ? "lock-hint ready" : "lock-hint"}>

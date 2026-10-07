@@ -36,7 +36,7 @@ export function ChoiceZone({ side, choice, selected, count, globalCount, globalP
         <>
           <span className="global-votes" aria-live="polite">
             <b>{globalPercent === null ? "—" : `${globalPercent.toFixed(1)}%`}</b>
-            <small>{globalCount.toLocaleString()} GLOBAL {globalCount === 1 ? "VOTE" : "VOTES"}</small>
+            <small>{globalCount.toLocaleString()} {globalCount === 1 ? "VOTE" : "VOTES"}</small>
           </span>
           <span className="people-count"><b>{count}</b> IN THIS ROOM</span>
         </>

@@ -57,8 +57,10 @@ export function JourneyMap({
             transition={{ delay: 0.45 + index * 0.16, duration: 0.4 }}
           >
             <span className="journey-node-dot" aria-hidden="true" />
-            <strong>{stop.zh}</strong>
-            <small>{stop.en}</small>
+            <span className="journey-node-label">
+              <strong>{stop.zh}</strong>
+              <small>{stop.en}</small>
+            </span>
           </motion.div>
         ))}
 
