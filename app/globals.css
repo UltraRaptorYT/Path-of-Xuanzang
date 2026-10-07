@@ -345,7 +345,7 @@ button { font: inherit; }
 .journey-node-3 { left: 72%; top: 35%; }
 .journey-node-3 .journey-node-label { left: 6rem; top: -3.5rem; }
 .journey-node-4 { left: 96.5%; top: 21%; }
-.journey-node-4 .journey-node-label { left: -1.3rem; top: -3.4rem; }
+.journey-node-4 .journey-node-label { left: -1.3rem; top: -5rem; }
 .journey-seal { position: absolute; z-index: 2; left: 68%; top: 70%; display: grid; width: clamp(2.8rem,4vw,4rem); aspect-ratio: 1; place-items: center; border: 3px double rgba(151,61,44,.82); color: #973d2c; background: rgba(232,213,177,.78); font-size: clamp(1.4rem,2vw,2rem); transform: translate(-50%,-50%) rotate(-6deg); }
 .journey-footer { align-items: center; justify-content: flex-start; gap: .35rem; }
 .journey-footer button { margin: 0; padding: .3rem .85rem; }
@@ -361,7 +361,7 @@ button { font: inherit; }
   .journey-node small { font-size: clamp(.58rem,1.7vw,.72rem); letter-spacing: .08em; }
   .journey-node-4 { left: 95%; }
   .journey-node-3 .journey-node-label { left: 2.5rem; top: -3.1rem; }
-  .journey-node-4 .journey-node-label { left: -1.2rem; top: -3rem; }
+  .journey-node-4 .journey-node-label { left: -1.2rem; top: -4.5rem; }
   .journey-seal { width: 2.6rem; }
   .journey-footer button { font-size: .95rem; }
 }
