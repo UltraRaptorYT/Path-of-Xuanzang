@@ -1,6 +1,6 @@
 # Path of Xuanzang · 玄奘之路
 
-A full-screen, camera-controlled event experience built with Next.js. The game plays three cinematic chapters, asks the room to move left or right, reveals the historical figure behind Tang Sanzang, and opens onto Xuanzang's journey map.
+A full-screen, camera-controlled event experience built with Next.js. The game plays five cinematic question clips, asks the room to choose between two answers by moving left or right, reveals the historical figure behind Tang Sanzang, and opens onto Xuanzang's journey map.
 
 ## Run locally
 
@@ -17,8 +17,8 @@ Keyboard controls remain available as an operator fallback: left/right arrows se
 
 | Key | Action |
 | --- | --- |
-| `←` | Select left / YES |
-| `→` | Select right / NO |
+| `←` | Select the left answer |
+| `→` | Select the right answer |
 | `Space` | Lock the current choice |
 | `Enter` | Start, skip, or continue |
 | `R` | Replay the current video |
@@ -27,16 +27,22 @@ Keyboard controls remain available as an operator fallback: left/right arrows se
 
 Choice zones also respond to clicks for rehearsals and testing.
 
+Locked answers are saved globally in the Supabase `path_of_xuanzang_station1_votes` table as aggregate left/right counts and the selected option. Open the operator HUD with `O` and choose **Export Votes CSV** to download the records from Supabase. The camera does not identify individual participants.
+
+Set the server-only `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` variables in `.env.local` and in the deployment environment. The `/api/votes` route limits access to vote records so the Supabase key is not sent to browsers. The migration in `supabase/migrations/` creates the vote table and its row-level security policies.
+
 ## Content
 
-Questions and answers live in `data/station1.ts`. Edit that file to change round copy without touching the scene components.
+The five questions, answer choices, and answer explanations live in `data/station1.ts`. Each round plays its matching clip before the question.
 
 The local video files are expected at:
 
 ```text
-public/videos/Station1(part1).mp4
-public/videos/Station1(part2).mp4
-public/videos/Station1(part3).mp4
+public/videos/Station1(pt1).mp4
+public/videos/Station1(pt2).mp4
+public/videos/Station1(pt3).mp4
+public/videos/Station1(pt4).mp4
+public/videos/Station1(pt5).mp4
 ```
 
 ## Deploy to Vercel

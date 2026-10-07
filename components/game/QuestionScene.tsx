@@ -2,13 +2,17 @@
 
 import { motion } from "motion/react";
 import type { Side, StationRound } from "@/data/station1";
+import type { VoteSummary } from "@/data/voteStorage";
 import { ChoiceZone } from "./ChoiceZone";
 import { Countdown } from "./Countdown";
 
 interface QuestionSceneProps {
   round: StationRound;
   roundNumber: number;
+  totalRounds: number;
   selected: Side | null;
+  showGlobalResults: boolean;
+  globalVotes: VoteSummary | null;
   countdown: number;
   isCounting: boolean;
   leftCount: number;
@@ -19,13 +23,22 @@ interface QuestionSceneProps {
 export function QuestionScene({
   round,
   roundNumber,
+  totalRounds,
   selected,
+  showGlobalResults,
+  globalVotes,
   countdown,
   isCounting,
   leftCount,
   rightCount,
   sideProgress,
 }: QuestionSceneProps) {
+  const globalTotal = globalVotes?.totalCount ?? 0;
+  const leftGlobalPercent = globalVotes && globalTotal > 0
+    ? Math.round((globalVotes.leftCount / globalTotal) * 1000) / 10
+    : null;
+  const rightGlobalPercent = leftGlobalPercent === null ? null : 100 - leftGlobalPercent;
+
   return (
     <motion.section
       className="scene question-scene paper-surface"
@@ -35,7 +48,19 @@ export function QuestionScene({
       transition={{ duration: 0.65 }}
     >
       <header className="question-header">
-        <p className="round-label">第 {roundNumber} 问 · QUESTION {roundNumber}</p>
+        <div className="question-kicker">
+          <span>第一站 · STATION ONE</span>
+          <i aria-hidden="true" />
+          <span>第 {roundNumber} 问 · ROUND {String(roundNumber).padStart(2, "0")} / {String(totalRounds).padStart(2, "0")}</span>
+        </div>
+        <div className="round-progress" aria-label={`Round ${roundNumber} of ${totalRounds}`}>
+          {Array.from({ length: totalRounds }, (_, index) => (
+            <span
+              key={index}
+              className={index + 1 === roundNumber ? "current" : index + 1 < roundNumber ? "complete" : ""}
+            />
+          ))}
+        </div>
         <motion.h2
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -47,17 +72,38 @@ export function QuestionScene({
       </header>
 
       <div className="choices">
-        <ChoiceZone side="left" selected={selected} count={leftCount} />
+        <ChoiceZone
+          side="left"
+          choice={round.choices.left}
+          selected={selected}
+          count={leftCount}
+          globalCount={globalVotes?.leftCount ?? 0}
+          globalPercent={leftGlobalPercent}
+          showGlobalResults={showGlobalResults}
+        />
         <div className="ink-divider" aria-hidden="true"><span /></div>
-        <ChoiceZone side="right" selected={selected} count={rightCount} />
+        <ChoiceZone
+          side="right"
+          choice={round.choices.right}
+          selected={selected}
+          count={rightCount}
+          globalCount={globalVotes?.rightCount ?? 0}
+          globalPercent={rightGlobalPercent}
+          showGlobalResults={showGlobalResults}
+        />
       </div>
 
       <div className="question-footer">
         <div>
-          <p>请选择你的位置</p>
-          <span>CHOOSE YOUR SIDE</span>
+          <p>选择你的答案</p>
+          <span>CHOOSE YOUR ANSWER</span>
         </div>
-        {isCounting && <Countdown value={countdown} />}
+        {showGlobalResults ? (
+          <div className="total-votes" aria-live="polite">
+            <b>{globalVotes ? globalTotal.toLocaleString() : "—"}</b>
+            <span>TOTAL GLOBAL VOTES</span>
+          </div>
+        ) : isCounting ? <Countdown value={countdown} /> : null}
         <div className={selected ? "lock-hint ready" : "lock-hint"}>
           <p>{selected ? "保持位置 · HOLD YOUR SIDE" : "走到左边或右边 · MOVE LEFT OR RIGHT"}</p>
           <span><i style={{ transform: `scaleX(${sideProgress})` }} /></span>

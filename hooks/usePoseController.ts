@@ -34,7 +34,7 @@ export interface PoseControllerResult {
   restartCamera: () => void;
 }
 
-const START_HOLD_MS = 1200;
+const START_HOLD_MS = 750;
 const SIDE_HOLD_MS = 1600;
 const FRAME_INTERVAL_MS = 90;
 

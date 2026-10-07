@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
 
 interface VideoSceneProps {
@@ -12,19 +12,16 @@ interface VideoSceneProps {
 
 export function VideoScene({ src, videoKey, onEnded, onStatus }: VideoSceneProps) {
   const ref = useRef<HTMLVideoElement>(null);
-  const [pausedByBrowser, setPausedByBrowser] = useState(false);
 
   useEffect(() => {
     const video = ref.current;
     if (!video) return;
     onStatus("loading");
-    void video.play().catch(() => setPausedByBrowser(true));
+    void video.play().catch(() => {
+      video.muted = true;
+      void video.play().catch(() => onStatus("autoplay-blocked"));
+    });
   }, [src, videoKey, onStatus]);
-
-  const resume = () => {
-    setPausedByBrowser(false);
-    void ref.current?.play();
-  };
 
   return (
     <motion.section
@@ -49,12 +46,6 @@ export function VideoScene({ src, videoKey, onEnded, onStatus }: VideoSceneProps
         onError={() => onStatus("error")}
       />
       <div className="video-vignette" />
-      {pausedByBrowser && (
-        <button className="resume-video" type="button" onClick={resume}>
-          <span>继续播放</span>
-          CONTINUE VIDEO
-        </button>
-      )}
       <p className="video-skip">播放结束后自动继续 · AUTO CONTINUE</p>
     </motion.section>
   );

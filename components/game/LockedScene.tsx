@@ -5,6 +5,8 @@ import type { Side, StationRound } from "@/data/station1";
 
 export function LockedScene({ round, selected }: { round: StationRound; selected: Side }) {
   const yes = selected === "left";
+  const choice = round.choices[selected];
+
   return (
     <motion.section
       className={`scene locked-scene paper-surface ${yes ? "choice-left" : "choice-right"}`}
@@ -25,8 +27,8 @@ export function LockedScene({ round, selected }: { round: StationRound; selected
         transition={{ delay: 0.25, duration: 0.65 }}
       >
         <p>你们的选择 · YOUR CHOICE</p>
-        <strong>{yes ? "是" : "否"}</strong>
-        <span>{yes ? "YES" : "NO"}</span>
+        <strong>{yes ? "A" : "B"}</strong>
+        <span>{choice.zh} · {choice.en}</span>
         <div className="stamp">定</div>
       </motion.div>
       {round.type === "poll" && <p className="continue-hint">即将继续 · CONTINUING THE JOURNEY</p>}

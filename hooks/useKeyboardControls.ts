@@ -28,7 +28,7 @@ export function useKeyboardControls() {
       }
 
       if (event.key.toLowerCase() === "r" &&
-          (state.currentScene === "video" || state.currentScene === "finalVideo")) {
+          state.currentScene === "video") {
         state.replayVideo();
         return;
       }
@@ -57,9 +57,7 @@ export function useKeyboardControls() {
           state.advanceRound();
         }
       } else if (state.currentScene === "reveal") {
-        state.setScene("finalVideo");
-      } else if (state.currentScene === "finalVideo") {
-        state.setScene("journey");
+        state.advanceRound();
       } else if (state.currentScene === "journey") {
         state.reset();
       }
