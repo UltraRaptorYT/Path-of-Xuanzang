@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@property --restart-progress {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 360deg;
+}
+
 :root {
   --ink: #171410;
   --paper: #dfcca7;
@@ -56,7 +62,7 @@ button { font: inherit; }
 .ink-underline { width: clamp(10rem,18vw,20rem); height: 11px; margin-top: 1.4vh; background: var(--ink); clip-path: polygon(0 35%,12% 18%,58% 26%,100% 0,91% 75%,30% 67%,4% 100%); transform: scaleX(.65); opacity: .45; transition: .5s; }
 .selected .ink-underline { transform: scaleX(1); opacity: 1; background: var(--seal); }.selected-mark { position: absolute; bottom: 1.2vh; font: 700 .72rem Arial,sans-serif; letter-spacing: .25em; color: var(--seal); }
 .ink-divider { position: relative; height: 100%; }.ink-divider::before { content: ""; position: absolute; left: 11px; top: -4%; width: 10px; height: 110%; background: var(--ink); clip-path: polygon(48% 0,79% 9%,55% 18%,92% 31%,46% 43%,80% 58%,35% 71%,68% 87%,42% 100%,16% 91%,38% 76%,8% 64%,42% 49%,12% 34%,45% 19%,21% 7%); opacity: .82; }
-.question-footer { position: relative; z-index: 12; display: flex; align-items: center; justify-content: center; gap: 2.2rem; border-top: 1px solid rgba(41,31,20,.22); background: rgba(41,31,20,.08); }.question-footer > div { text-align: center; }.question-footer > div p { margin: 0; font-size: clamp(.9rem,1.1vw,1.2rem); letter-spacing: .14em; }.question-footer > div span, .lock-hint { font: 700 .67rem Arial,sans-serif; letter-spacing: .2em; }.lock-hint { margin: 0; min-width: 16rem; }.lock-hint.ready { color: var(--seal); }
+.question-footer { position: relative; z-index: 12; display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 2.2rem; border-top: 1px solid rgba(41,31,20,.22); background: rgba(41,31,20,.08); }.question-footer > div { text-align: center; }.question-footer > div:first-child { grid-column: 1; justify-self: end; }.question-footer .countdown, .question-footer .total-votes { grid-column: 2; justify-self: center; }.question-footer .lock-hint { grid-column: 3; justify-self: start; }.question-footer > div p { margin: 0; font-size: clamp(.9rem,1.1vw,1.2rem); letter-spacing: .14em; }.question-footer > div span, .lock-hint { font: 700 .67rem Arial,sans-serif; letter-spacing: .2em; }.lock-hint { margin: 0; min-width: 16rem; }.lock-hint.ready { color: var(--seal); }
 .countdown { position: relative; width: clamp(4.7rem,6vw,6.4rem); aspect-ratio: 1; display: grid; place-items: center; }.countdown-ring { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--seal) var(--progress),rgba(41,31,20,.14) 0); -webkit-mask: radial-gradient(circle,transparent 53%,#000 55%); mask: radial-gradient(circle,transparent 53%,#000 55%); transform: rotate(-90deg); }.countdown span { position: relative; font-size: clamp(2rem,3.4vw,3.7rem); font-weight: 800; }
 
 .locked-scene, .reveal-scene { display: grid; place-items: center; text-align: center; }
@@ -337,13 +343,14 @@ button { font: inherit; }
 .journey-node-1 { left: 25%; top: 35%; }
 .journey-node-2 { left: 50%; top: 60%; }
 .journey-node-3 { left: 72%; top: 35%; }
-.journey-node-3 .journey-node-label { left: 6rem; top: -1.1rem; }
+.journey-node-3 .journey-node-label { left: 6rem; top: -3.5rem; }
 .journey-node-4 { left: 96.5%; top: 21%; }
+.journey-node-4 .journey-node-label { left: -1.3rem; top: -3.4rem; }
 .journey-seal { position: absolute; z-index: 2; left: 68%; top: 70%; display: grid; width: clamp(2.8rem,4vw,4rem); aspect-ratio: 1; place-items: center; border: 3px double rgba(151,61,44,.82); color: #973d2c; background: rgba(232,213,177,.78); font-size: clamp(1.4rem,2vw,2rem); transform: translate(-50%,-50%) rotate(-6deg); }
 .journey-footer { align-items: center; justify-content: flex-start; gap: .35rem; }
 .journey-footer button { margin: 0; padding: .3rem .85rem; }
 .restart-countdown { gap: .45rem; }
-.restart-countdown-ring { width: 2rem; }
+.restart-countdown-ring { width: 2rem; transition: --restart-progress 1s linear; }
 
 @media (max-width: 800px), (max-height: 650px) {
   .journey-scene { grid-template-rows: 22% 1fr 16%; padding: 0 2vw; }
@@ -353,7 +360,8 @@ button { font: inherit; }
   .journey-node strong { font-size: clamp(1rem,3vw,1.4rem); }
   .journey-node small { font-size: clamp(.58rem,1.7vw,.72rem); letter-spacing: .08em; }
   .journey-node-4 { left: 95%; }
-  .journey-node-3 .journey-node-label { left: 2.5rem; top: -.7rem; }
+  .journey-node-3 .journey-node-label { left: 2.5rem; top: -3.1rem; }
+  .journey-node-4 .journey-node-label { left: -1.2rem; top: -3rem; }
   .journey-seal { width: 2.6rem; }
   .journey-footer button { font-size: .95rem; }
 }
