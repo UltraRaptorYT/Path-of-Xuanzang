@@ -34,6 +34,7 @@ interface GameState {
   selectSide: (side: Side | null) => void;
   setCountdown: (value: number) => void;
   setVoteCounts: (left: number, right: number) => void;
+  refreshVoteSummary: (roundId: string) => Promise<void>;
   refreshVoteRecords: () => Promise<VoteRecord[] | null>;
   lockChoice: () => void;
   advanceRound: () => void;
@@ -69,6 +70,14 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((state) => state.voteCounts.left === left && state.voteCounts.right === right
       ? state
       : { voteCounts: { left, right } }),
+  refreshVoteSummary: async (roundId) => {
+    try {
+      const summary = await fetchVoteSummary(roundId);
+      set((state) => ({ voteSummaries: { ...state.voteSummaries, [roundId]: summary } }));
+    } catch {
+      // Keep the last known totals if the database is temporarily unavailable.
+    }
+  },
   refreshVoteRecords: async () => {
     set({ voteSyncStatus: "loading", voteSyncError: null });
     try {

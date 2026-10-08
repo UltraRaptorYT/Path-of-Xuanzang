@@ -31,6 +31,7 @@ export function GameController() {
     videoKey,
     voteCounts,
     voteSummaries,
+    refreshVoteSummary,
     setVoteCounts,
     setScene,
     selectSide,
@@ -42,10 +43,21 @@ export function GameController() {
   } = useGameStore();
   const pose = usePoseController(currentScene);
   const backgroundAudioRef = useRef<HTMLAudioElement>(null);
+  const voteRefreshForRoundRef = useRef<string | null>(null);
   const [videoStatus, setVideoStatus] = useState("idle");
   const [journeySecondsRemaining, setJourneySecondsRemaining] = useState(JOURNEY_DISPLAY_MS / 1000);
-  const [lockedResultsVisible, setLockedResultsVisible] = useState(false);
   const round = station1Rounds[currentRound];
+
+  useEffect(() => {
+    if (currentScene !== "question" || !round) {
+      voteRefreshForRoundRef.current = null;
+      return;
+    }
+    if (voteRefreshForRoundRef.current === round.id) return;
+
+    voteRefreshForRoundRef.current = round.id;
+    void refreshVoteSummary(round.id);
+  }, [currentScene, round, refreshVoteSummary]);
 
   const startBackgroundAudio = useCallback(() => {
     const audio = backgroundAudioRef.current;
@@ -99,18 +111,6 @@ export function GameController() {
   }, [currentScene, countdown, selectedSide, lockChoice, setCountdown]);
 
   useEffect(() => {
-    if (currentScene !== "locked") {
-      setLockedResultsVisible(false);
-      return;
-    }
-    const timer = window.setTimeout(
-      () => setLockedResultsVisible(true),
-      LOCKED_SELECTION_HOLD_MS,
-    );
-    return () => window.clearTimeout(timer);
-  }, [currentScene, currentRound]);
-
-  useEffect(() => {
     if (currentScene !== "locked" || !round || !selectedSide) return;
 
     const isCorrect = round.correctSide == null || selectedSide === round.correctSide;
@@ -145,7 +145,7 @@ export function GameController() {
 
   useEffect(() => {
     if (currentScene !== "reveal") return;
-    const timer = window.setTimeout(() => advanceRound(), 4300);
+    const timer = window.setTimeout(() => advanceRound(), 7000);
     return () => window.clearTimeout(timer);
   }, [advanceRound, currentScene]);
 
@@ -204,7 +204,7 @@ export function GameController() {
             roundNumber={currentRound + 1}
             totalRounds={station1Rounds.length}
             selected={selectedSide}
-            showGlobalResults={currentScene === "locked" && lockedResultsVisible}
+            showGlobalResults={currentScene === "locked"}
             globalVotes={voteSummaries[round.id] ?? null}
             countdown={countdown}
             isCounting={currentScene === "countdown"}

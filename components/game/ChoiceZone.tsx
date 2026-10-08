@@ -34,10 +34,17 @@ export function ChoiceZone({ side, choice, selected, count, globalCount, globalP
       <span className="ink-underline" />
       {showGlobalResults && (
         <>
-          <span className="global-votes" aria-live="polite">
+          <motion.span
+            key={`${side}-${globalPercent}-${globalCount}`}
+            className="global-votes"
+            aria-live="polite"
+            initial={{ opacity: 0, y: 14, scale: 0.94 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, delay: left ? 0 : 0.12, ease: [0.22, 1, 0.36, 1] }}
+          >
             <b>{globalPercent === null ? "—" : `${globalPercent.toFixed(1)}%`}</b>
             <small>{globalCount.toLocaleString()} {globalCount === 1 ? "VOTE" : "VOTES"}</small>
-          </span>
+          </motion.span>
           <span className="people-count"><b>{count}</b> IN THIS ROOM</span>
         </>
       )}
