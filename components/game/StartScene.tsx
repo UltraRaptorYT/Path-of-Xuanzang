@@ -58,7 +58,7 @@ export function StartScene({
             )}
           </div>
         )}
-        {cameraStatus === "ready" && videosReady ? (
+        {cameraStatus === "ready" ? (videosReady && (
           <div className="start-pose-control">
             <div className="pose-glyph" aria-hidden="true">
               <Image
@@ -75,7 +75,7 @@ export function StartScene({
             </div>
             <div className="pose-hold"><i style={{ transform: `scaleX(${poseProgress})` }} /></div>
           </div>
-        ) : (
+        )) : (
           <div className="camera-setup">
             <p>{cameraStatus === "loading" ? "正在唤醒灵镜 · AWAKENING CAMERA" : "需要摄像头来感应你的动作 · CAMERA NEEDED"}</p>
             {cameraStatus !== "loading" && (

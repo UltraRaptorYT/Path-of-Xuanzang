@@ -20,7 +20,7 @@ export interface StationRound {
 export const station1Rounds: StationRound[] = [
   {
     id: "journey-to-west",
-    video: "/videos/Station1(pt1).mp4",
+    video: "/videos/optimized/Station1(pt1)-1080p.mp4",
     type: "poll",
     questionZh: "你曾经看过《西游记》吗？",
     questionEn: "Have you ever watched Journey to the West?",
@@ -31,7 +31,7 @@ export const station1Rounds: StationRound[] = [
   },
   {
     id: "real-person",
-    video: "/videos/Station1(pt2).mp4",
+    video: "/videos/optimized/Station1(pt2)-1080p.mp4",
     type: "poll",
     questionZh:
       "你知道《西游记》中的唐三藏，其实是以一位真实的历史人物为原型吗？",
@@ -48,7 +48,7 @@ export const station1Rounds: StationRound[] = [
   },
   {
     id: "facing-distress",
-    video: "/videos/Station1(pt3).mp4",
+    video: "/videos/optimized/Station1(pt3)-1080p.mp4",
     type: "quiz",
     questionZh: "面对困境时，玄奘大师是如何面对的呢？",
     questionEn: "When faced with distress, what did Master Xuanzang do?",
@@ -66,7 +66,7 @@ export const station1Rounds: StationRound[] = [
   },
   {
     id: "fearless-monk",
-    video: "/videos/Station1(pt4).mp4",
+    video: "/videos/optimized/Station1(pt4)-1080p.mp4",
     type: "quiz",
     questionZh: "玄奘大师是一位柔弱、需要孙悟空保护的僧人吗？",
     questionEn:
@@ -89,7 +89,7 @@ export const station1Rounds: StationRound[] = [
   },
   {
     id: "purpose-of-india-journey",
-    video: "/videos/Station1(pt5).mp4",
+    video: "/videos/optimized/Station1(pt5)-1080p.mp4",
     type: "quiz",
     questionZh: "玄奘大师前往印度的主要目的是什么？",
     questionEn: "What was Master Xuanzang’s main purpose for going to India?",

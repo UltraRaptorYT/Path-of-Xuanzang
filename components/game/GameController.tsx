@@ -5,6 +5,7 @@ import { AnimatePresence } from "motion/react";
 import { station1Rounds } from "@/data/station1";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { usePoseController } from "@/hooks/usePoseController";
+import { useVideoPreloader } from "@/hooks/useVideoPreloader";
 import { useGameStore } from "@/store/gameStore";
 import { AnswerReveal } from "./AnswerReveal";
 import { JourneyMap } from "./JourneyMap";
@@ -20,7 +21,8 @@ const LOCKED_SELECTION_HOLD_MS = 1_000;
 const RESULT_HOLD_AFTER_SOUND_MS = 2_000;
 
 export function GameController() {
-  useKeyboardControls();
+  const videoPreload = useVideoPreloader();
+  useKeyboardControls(videoPreload.ready);
   const {
     currentScene,
     currentRound,
@@ -71,14 +73,15 @@ export function GameController() {
   }, [startBackgroundAudio]);
 
   const start = useCallback(() => {
+    if (!videoPreload.ready) return;
     startBackgroundAudio();
     setScene("video");
     void document.documentElement.requestFullscreen?.().catch(() => undefined);
-  }, [setScene, startBackgroundAudio]);
+  }, [setScene, startBackgroundAudio, videoPreload.ready]);
 
   useEffect(() => {
-    if (currentScene === "start" && pose.startProgress >= 1) start();
-  }, [currentScene, pose.startProgress, start]);
+    if (videoPreload.ready && currentScene === "start" && pose.startProgress >= 1) start();
+  }, [currentScene, pose.startProgress, start, videoPreload.ready]);
 
   useEffect(() => {
     if (currentScene === "question" || currentScene === "countdown") {
@@ -170,7 +173,7 @@ export function GameController() {
 
   return (
     <main className={`game-shell ${currentScene === "video" ? "is-playing-station-video" : ""}`} onPointerDownCapture={startBackgroundAudio} onKeyDownCapture={startBackgroundAudio}>
-      <video className="game-background-video" autoPlay muted loop playsInline aria-hidden="true" tabIndex={-1}>
+      <video className="game-background-video" autoPlay={videoPreload.ready} muted loop playsInline preload={videoPreload.ready ? "auto" : "none"} aria-hidden="true" tabIndex={-1}>
         <source src="/videos/background.mp4" type="video/mp4" />
       </video>
       <div className="game-background-wash" aria-hidden="true" />
@@ -182,7 +185,12 @@ export function GameController() {
             key="start"
             cameraStatus={pose.status}
             poseProgress={pose.startProgress}
+            videosReady={videoPreload.ready}
+            videosLoaded={videoPreload.completed}
+            totalVideos={videoPreload.total}
+            videoLoadError={videoPreload.error}
             onRetryCamera={pose.restartCamera}
+            onRetryVideoLoad={videoPreload.retry}
             onFallbackStart={start}
           />
         )}
@@ -237,10 +245,6 @@ export function GameController() {
         visible={currentScene === "question" || currentScene === "countdown"}
         showPreview={operatorOpen}
       />
-
-      <div className="video-preloader" aria-hidden="true">
-        {station1Rounds.slice(1).map((item) => <video key={item.id} src={item.video} preload="metadata" />)}
-      </div>
 
       <OperatorOverlay videoStatus={videoStatus} cameraStatus={pose.status} />
       <AnimatePresence>

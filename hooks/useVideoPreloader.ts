@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { station1Rounds } from "@/data/station1";
 
-const VIDEO_CACHE_NAME = "path-of-xuanzang-video-assets-v1";
+const VIDEO_CACHE_NAME = "path-of-xuanzang-video-assets-v2";
 const VIDEO_SOURCES = Array.from(new Set([
   "/videos/background.mp4",
   ...station1Rounds.map((round) => round.video),
-  "/videos/Ending%20Map.mp4",
+  "/videos/optimized/Ending%20Map-1080p.mp4",
 ]));
 
 type VideoPreloadListener = (completed: number) => void;
@@ -31,15 +31,18 @@ async function waitForServiceWorkerControl() {
   if (navigator.serviceWorker.controller) return;
 
   await new Promise<void>((resolve, reject) => {
-    const timeout = window.setTimeout(() => {
+    let timeout: number;
+    const handleControllerChange = () => {
+      window.clearTimeout(timeout);
+      navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+      resolve();
+    };
+    timeout = window.setTimeout(() => {
       navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
       reject(new Error("The video cache is taking too long to start. Retry to continue."));
     }, 15_000);
-    const handleControllerChange = () => {
-      window.clearTimeout(timeout);
-      resolve();
-    };
     navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange, { once: true });
+    if (navigator.serviceWorker.controller) handleControllerChange();
   });
 }
 

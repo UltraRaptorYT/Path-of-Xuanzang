@@ -1,12 +1,12 @@
-const CACHE_NAME = "path-of-xuanzang-video-assets-v1";
+const CACHE_NAME = "path-of-xuanzang-video-assets-v2";
 const VIDEO_PATHS = new Set([
   "/videos/background.mp4",
-  "/videos/Ending%20Map.mp4",
-  "/videos/Station1(pt1).mp4",
-  "/videos/Station1(pt2).mp4",
-  "/videos/Station1(pt3).mp4",
-  "/videos/Station1(pt4).mp4",
-  "/videos/Station1(pt5).mp4",
+  "/videos/optimized/Ending%20Map-1080p.mp4",
+  "/videos/optimized/Station1(pt1)-1080p.mp4",
+  "/videos/optimized/Station1(pt2)-1080p.mp4",
+  "/videos/optimized/Station1(pt3)-1080p.mp4",
+  "/videos/optimized/Station1(pt4)-1080p.mp4",
+  "/videos/optimized/Station1(pt5)-1080p.mp4",
 ]);
 
 self.addEventListener("install", (event) => {

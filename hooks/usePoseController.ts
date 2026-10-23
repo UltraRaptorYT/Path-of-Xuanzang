@@ -36,7 +36,23 @@ export interface PoseControllerResult {
 
 const START_HOLD_MS = 750;
 const SIDE_HOLD_MS = 1600;
-const FRAME_INTERVAL_MS = 90;
+const STANDARD_DETECTION_INTERVAL_MS = 100;
+const LOW_POWER_DETECTION_INTERVAL_MS = 150;
+
+function getDevicePerformanceProfile() {
+  const device = navigator as Navigator & { deviceMemory?: number };
+  const lowPower =
+    (device.hardwareConcurrency || 8) <= 4 || (device.deviceMemory ?? 8) <= 4;
+
+  return {
+    cameraWidth: lowPower ? 640 : 960,
+    cameraHeight: lowPower ? 360 : 540,
+    maxPoses: lowPower ? 4 : 6,
+    detectionInterval: lowPower
+      ? LOW_POWER_DETECTION_INTERVAL_MS
+      : STANDARD_DETECTION_INTERVAL_MS,
+  };
+}
 
 function handsRaised(points: NormalizedLandmark[]) {
   const nose = points[0];
@@ -69,7 +85,7 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
   const landmarkerRef = useRef<PoseLandmarker | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const frameRef = useRef<number | null>(null);
-  const lastFrameRef = useRef(0);
+  const scheduleDetectionRef = useRef<(() => void) | null>(null);
   const startSinceRef = useRef<number | null>(null);
   const sideSinceRef = useRef<number | null>(null);
   const lastSideRef = useRef<Side | null>(null);
@@ -84,8 +100,9 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
   const [sideProgress, setSideProgress] = useState(0);
 
   const stop = useCallback(() => {
-    if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+    if (frameRef.current !== null) window.clearTimeout(frameRef.current);
     frameRef.current = null;
+    scheduleDetectionRef.current = null;
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
     landmarkerRef.current?.close();
@@ -102,12 +119,13 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
     }
 
     try {
+      const performanceProfile = getDevicePerformanceProfile();
       const [vision, stream] = await Promise.all([
         FilesetResolver.forVisionTasks("/mediapipe/wasm"),
         navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 960 },
-            height: { ideal: 540 },
+            width: { ideal: performanceProfile.cameraWidth },
+            height: { ideal: performanceProfile.cameraHeight },
             facingMode: "user",
           },
           audio: false,
@@ -124,7 +142,7 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
           delegate: "GPU" as const,
         },
         runningMode: "VIDEO" as const,
-        numPoses: 6,
+        numPoses: performanceProfile.maxPoses,
         minPoseDetectionConfidence: .45,
         minPosePresenceConfidence: .45,
         minTrackingConfidence: .45,
@@ -153,18 +171,18 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
       await video.play();
       setStatus("ready");
 
-      const detect = (time: number) => {
+      const detect = () => {
+        frameRef.current = null;
         if (runId !== runIdRef.current) return;
-        frameRef.current = requestAnimationFrame(detect);
+        const activeScene = sceneRef.current;
+        if (activeScene !== "start" && activeScene !== "question" && activeScene !== "countdown") return;
+        frameRef.current = window.setTimeout(detect, performanceProfile.detectionInterval);
         const activeVideo = videoRef.current;
         const activeLandmarker = landmarkerRef.current;
         if (!activeVideo || !activeLandmarker || activeVideo.readyState < 2) return;
-        const activeScene = sceneRef.current;
-        if (activeScene !== "start" && activeScene !== "question" && activeScene !== "countdown") return;
-        if (time - lastFrameRef.current < FRAME_INTERVAL_MS) return;
-        lastFrameRef.current = time;
 
-        const result = activeLandmarker.detectForVideo(activeVideo, performance.now());
+        const time = performance.now();
+        const result = activeLandmarker.detectForVideo(activeVideo, time);
         const nextPlayers = result.landmarks.map((landmarks, id) => ({
           id,
           centerX: getCenterX(landmarks),
@@ -208,7 +226,12 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
         }
       };
 
-      frameRef.current = requestAnimationFrame(detect);
+      scheduleDetectionRef.current = () => {
+        if (frameRef.current === null) {
+          frameRef.current = window.setTimeout(detect, 0);
+        }
+      };
+      scheduleDetectionRef.current();
     } catch (error) {
       console.error("Unable to start pose controls", error);
       const denied = error instanceof DOMException &&
@@ -220,6 +243,9 @@ export function usePoseController(scene: GameScene): PoseControllerResult {
 
   useEffect(() => {
     sceneRef.current = scene;
+    if (scene === "start" || scene === "question" || scene === "countdown") {
+      scheduleDetectionRef.current?.();
+    }
     startSinceRef.current = null;
     sideSinceRef.current = null;
     lastSideRef.current = null;

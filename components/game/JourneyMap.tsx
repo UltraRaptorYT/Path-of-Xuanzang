@@ -27,7 +27,7 @@ export function JourneyMap({
           aria-hidden="true"
           tabIndex={-1}
         >
-          <source src="/videos/Ending%20Map.mp4" type="video/mp4" />
+          <source src="/videos/optimized/Ending%20Map-1080p.mp4" type="video/mp4" />
         </video>
       </div>
 
