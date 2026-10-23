@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { station1Rounds } from "@/data/station1";
 import { useGameStore } from "@/store/gameStore";
 
-export function useKeyboardControls() {
+export function useKeyboardControls(canStart = true) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.repeat) return;
@@ -17,7 +17,7 @@ export function useKeyboardControls() {
         return;
       }
 
-      if (process.env.NODE_ENV === "development" && event.key.toLowerCase() === "j") {
+      if (process.env.NODE_ENV === "development" && canStart && event.key.toLowerCase() === "j") {
         state.setScene("journey");
         return;
       }
@@ -51,6 +51,7 @@ export function useKeyboardControls() {
       if (event.key !== "Enter") return;
 
       if (state.currentScene === "start") {
+        if (!canStart) return;
         state.setScene("video");
         void document.documentElement.requestFullscreen?.().catch(() => undefined);
       } else if (state.currentScene === "video") {
@@ -70,5 +71,5 @@ export function useKeyboardControls() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [canStart]);
 }

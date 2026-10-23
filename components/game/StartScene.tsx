@@ -7,11 +7,26 @@ import type { CameraStatus } from "@/hooks/usePoseController";
 interface StartSceneProps {
   cameraStatus: CameraStatus;
   poseProgress: number;
+  videosReady: boolean;
+  videosLoaded: number;
+  totalVideos: number;
+  videoLoadError: string | null;
   onRetryCamera: () => void;
+  onRetryVideoLoad: () => void;
   onFallbackStart: () => void;
 }
 
-export function StartScene({ cameraStatus, poseProgress, onRetryCamera, onFallbackStart }: StartSceneProps) {
+export function StartScene({
+  cameraStatus,
+  poseProgress,
+  videosReady,
+  videosLoaded,
+  totalVideos,
+  videoLoadError,
+  onRetryCamera,
+  onRetryVideoLoad,
+  onFallbackStart,
+}: StartSceneProps) {
   return (
     <motion.section
       className="scene start-scene paper-surface"
@@ -34,7 +49,16 @@ export function StartScene({ cameraStatus, poseProgress, onRetryCamera, onFallba
         <div className="brush-rule" />
         <p className="opening-line">从神话，走向一段真实的旅程</p>
         <p className="opening-en">Step beyond the legend. Discover the true journey.</p>
-        {cameraStatus === "ready" ? (
+        {!videosReady && (
+          <div className="video-preload-status" role="status" aria-live="polite">
+            <strong>{videoLoadError ? "视频准备失败 · VIDEO PRELOAD FAILED" : "正在准备视频 · PRELOADING VIDEOS"}</strong>
+            <span>{videoLoadError ?? `${videosLoaded} / ${totalVideos} videos cached`}</span>
+            {videoLoadError && (
+              <button type="button" onClick={onRetryVideoLoad}>重试视频缓存 · RETRY VIDEO PRELOAD</button>
+            )}
+          </div>
+        )}
+        {cameraStatus === "ready" && videosReady ? (
           <div className="start-pose-control">
             <div className="pose-glyph" aria-hidden="true">
               <Image
@@ -57,7 +81,7 @@ export function StartScene({ cameraStatus, poseProgress, onRetryCamera, onFallba
             {cameraStatus !== "loading" && (
               <>
                 <button type="button" onClick={onRetryCamera}>再次启用摄像头 · RETRY CAMERA</button>
-                <button className="fallback-link" type="button" onClick={onFallbackStart}>ENTER · OPERATOR FALLBACK</button>
+                <button className="fallback-link" type="button" disabled={!videosReady} onClick={onFallbackStart}>ENTER · OPERATOR FALLBACK</button>
               </>
             )}
           </div>
