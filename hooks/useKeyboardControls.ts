@@ -17,6 +17,11 @@ export function useKeyboardControls() {
         return;
       }
 
+      if (process.env.NODE_ENV === "development" && event.key.toLowerCase() === "j") {
+        state.setScene("journey");
+        return;
+      }
+
       if (event.key.toLowerCase() === "o") {
         state.toggleOperator();
         return;

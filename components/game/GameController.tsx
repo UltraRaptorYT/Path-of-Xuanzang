@@ -15,7 +15,7 @@ import { ResetOverlay } from "./ResetOverlay";
 import { StartScene } from "./StartScene";
 import { VideoScene } from "./VideoScene";
 
-const JOURNEY_DISPLAY_MS = 15_000;
+const JOURNEY_DISPLAY_MS = 10_000;
 const LOCKED_SELECTION_HOLD_MS = 1_000;
 const RESULT_HOLD_AFTER_SOUND_MS = 2_000;
 
