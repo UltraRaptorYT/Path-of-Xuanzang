@@ -15,8 +15,6 @@ interface QuestionSceneProps {
   globalVotes: VoteSummary | null;
   countdown: number;
   isCounting: boolean;
-  leftCount: number;
-  rightCount: number;
   sideProgress: number;
 }
 
@@ -29,8 +27,6 @@ export function QuestionScene({
   globalVotes,
   countdown,
   isCounting,
-  leftCount,
-  rightCount,
   sideProgress,
 }: QuestionSceneProps) {
   const globalTotal = globalVotes?.totalCount ?? 0;
@@ -76,7 +72,6 @@ export function QuestionScene({
           side="left"
           choice={round.choices.left}
           selected={selected}
-          count={leftCount}
           globalCount={globalVotes?.leftCount ?? 0}
           globalPercent={leftGlobalPercent}
           showGlobalResults={showGlobalResults}
@@ -86,7 +81,6 @@ export function QuestionScene({
           side="right"
           choice={round.choices.right}
           selected={selected}
-          count={rightCount}
           globalCount={globalVotes?.rightCount ?? 0}
           globalPercent={rightGlobalPercent}
           showGlobalResults={showGlobalResults}

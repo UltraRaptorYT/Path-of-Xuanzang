@@ -208,8 +208,6 @@ export function GameController() {
             globalVotes={voteSummaries[round.id] ?? null}
             countdown={countdown}
             isCounting={currentScene === "countdown"}
-            leftCount={currentScene === "locked" ? voteCounts.left : pose.leftCount}
-            rightCount={currentScene === "locked" ? voteCounts.right : pose.rightCount}
             sideProgress={pose.sideProgress}
           />
         )}

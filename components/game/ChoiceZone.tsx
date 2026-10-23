@@ -7,13 +7,12 @@ interface ChoiceZoneProps {
   side: Side;
   choice: StationChoice;
   selected: Side | null;
-  count: number;
   globalCount: number;
   globalPercent: number | null;
   showGlobalResults: boolean;
 }
 
-export function ChoiceZone({ side, choice, selected, count, globalCount, globalPercent, showGlobalResults }: ChoiceZoneProps) {
+export function ChoiceZone({ side, choice, selected, globalCount, globalPercent, showGlobalResults }: ChoiceZoneProps) {
   const active = selected === side;
   const dimmed = selected !== null && !active;
   const left = side === "left";
@@ -45,7 +44,6 @@ export function ChoiceZone({ side, choice, selected, count, globalCount, globalP
             <b>{globalPercent === null ? "—" : `${globalPercent.toFixed(1)}%`}</b>
             <small>{globalCount.toLocaleString()} {globalCount === 1 ? "VOTE" : "VOTES"}</small>
           </motion.span>
-          <span className="people-count"><b>{count}</b> IN THIS ROOM</span>
         </>
       )}
       {active && <span className="selected-mark">已选择 · SELECTED</span>}

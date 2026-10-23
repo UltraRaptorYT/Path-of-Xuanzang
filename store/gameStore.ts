@@ -6,6 +6,16 @@ import { fetchVoteRecords, fetchVoteSummary, saveVoteRecord, type VoteRecord, ty
 
 export type VoteSyncStatus = "idle" | "saving" | "synced" | "loading" | "error";
 
+const EMPTY_VOTE_SUMMARY: VoteSummary = { leftCount: 0, rightCount: 0, totalCount: 0 };
+
+function addVoteCounts(summary: VoteSummary, leftCount: number, rightCount: number): VoteSummary {
+  return {
+    leftCount: summary.leftCount + leftCount,
+    rightCount: summary.rightCount + rightCount,
+    totalCount: summary.totalCount + leftCount + rightCount,
+  };
+}
+
 export type GameScene =
   | "start"
   | "video"
@@ -73,7 +83,17 @@ export const useGameStore = create<GameState>((set, get) => ({
   refreshVoteSummary: async (roundId) => {
     try {
       const summary = await fetchVoteSummary(roundId);
-      set((state) => ({ voteSummaries: { ...state.voteSummaries, [roundId]: summary } }));
+      set((state) => {
+        const currentRoundId = station1Rounds[state.currentRound]?.id;
+        if (
+          currentRoundId !== roundId ||
+          (state.currentScene !== "question" && state.currentScene !== "countdown")
+        ) {
+          return state;
+        }
+
+        return { voteSummaries: { ...state.voteSummaries, [roundId]: summary } };
+      });
     } catch {
       // Keep the last known totals if the database is temporarily unavailable.
     }
@@ -116,29 +136,29 @@ export const useGameStore = create<GameState>((set, get) => ({
       correct: round.correctSide ? isCorrect : null,
     };
 
+    const cachedDatabaseSummary = state.voteSummaries[round.id] ?? EMPTY_VOTE_SUMMARY;
+    const hasDetectedPeople = state.voteCounts.left + state.voteCounts.right > 0;
+    const leftDelta = hasDetectedPeople ? state.voteCounts.left : state.selectedSide === "left" ? 1 : 0;
+    const rightDelta = hasDetectedPeople ? state.voteCounts.right : state.selectedSide === "right" ? 1 : 0;
+    const immediateSummary = addVoteCounts(cachedDatabaseSummary, leftDelta, rightDelta);
+
     set((current) => ({
       currentScene: "locked",
       sessionId,
       voteSyncStatus: "saving",
       voteSyncError: null,
+      voteSummaries: { ...current.voteSummaries, [round.id]: immediateSummary },
     }));
 
     void (async () => {
-      let baseSummary = get().voteSummaries[round.id] ?? { leftCount: 0, rightCount: 0, totalCount: 0 };
+      let databaseSummary = cachedDatabaseSummary;
       try {
-        baseSummary = await fetchVoteSummary(round.id);
+        databaseSummary = await fetchVoteSummary(round.id);
       } catch {
-        // Use the last known totals if the fresh pre-save read is briefly unavailable.
+        // Use the last database snapshot while keeping the local count visible.
       }
 
-      const hasDetectedPeople = state.voteCounts.left + state.voteCounts.right > 0;
-      const leftDelta = hasDetectedPeople ? state.voteCounts.left : state.selectedSide === "left" ? 1 : 0;
-      const rightDelta = hasDetectedPeople ? state.voteCounts.right : state.selectedSide === "right" ? 1 : 0;
-      const optimisticSummary = {
-        leftCount: baseSummary.leftCount + leftDelta,
-        rightCount: baseSummary.rightCount + rightDelta,
-        totalCount: baseSummary.totalCount + leftDelta + rightDelta,
-      };
+      const optimisticSummary = addVoteCounts(databaseSummary, leftDelta, rightDelta);
 
       set((current) => ({
         voteSummaries: { ...current.voteSummaries, [round.id]: optimisticSummary },
@@ -166,7 +186,6 @@ export const useGameStore = create<GameState>((set, get) => ({
         set((current) => ({
           voteSyncStatus: "error",
           voteSyncError: error instanceof Error ? error.message : "Could not save vote to Supabase.",
-          voteSummaries: { ...current.voteSummaries, [round.id]: baseSummary },
         }));
       }
     })();

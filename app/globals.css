@@ -97,7 +97,6 @@ button { font: inherit; }
 .pose-copy strong, .pose-copy span { display: block; }.pose-copy strong { font-size: clamp(1.3rem,1.8vw,1.9rem); letter-spacing: .06em; }.pose-copy span { margin-top: .45rem; font: 700 clamp(.8rem,.95vw,1rem) Arial,sans-serif; letter-spacing: .16em; }
 .pose-hold { grid-column: 2; height: 5px; margin-top: .8rem; background: rgba(23,20,16,.16); overflow: hidden; }.pose-hold i { display: block; width: 100%; height: 100%; background: var(--seal); transform-origin: left; transition: transform .1s linear; }
 .camera-setup { margin-top: 3vh; }.camera-setup p { font: 700 .8rem Arial,sans-serif; letter-spacing: .18em; }.camera-setup button { padding: .8rem 1rem; border: 1px solid var(--ink); background: var(--ink); color: var(--paper-light); cursor: pointer; font: 700 .7rem Arial,sans-serif; letter-spacing: .12em; }.camera-setup .fallback-link { display: block; margin: .7rem auto 0; border: 0; background: transparent; color: var(--ink); opacity: .58; }
-.people-count { margin-top: .75vh; font: 700 clamp(.62rem,.75vw,.8rem) Arial,sans-serif; letter-spacing: .16em; }.people-count b { margin-right: .25rem; color: var(--seal); font-size: 1.55em; }
 .lock-hint { margin: 0; min-width: 19rem; }.lock-hint p { margin: 0 0 .45rem !important; font: 700 .67rem Arial,sans-serif !important; letter-spacing: .16em !important; }.lock-hint > span { display: block; width: 100%; height: 4px; background: rgba(23,20,16,.15); overflow: hidden; }.lock-hint > span i { display: block; width: 100%; height: 100%; background: var(--seal); transform-origin: left; transition: transform .1s linear; }
 .camera-source { position: fixed; left: -2px; bottom: -2px; z-index: -1; width: 1px; height: 1px; opacity: .001; pointer-events: none; }
 .camera-debug-preview { position: fixed; left: -3px; bottom: -3px; z-index: -1; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
@@ -192,8 +191,6 @@ button { font: inherit; }
 .direction-en { font-size: clamp(.9rem,1.05vw,1.1rem); }
 .choice-zh { font-size: clamp(1.8rem,2.8vw,3.2rem); }
 .choice-en { max-width: 42vw; font-size: clamp(1rem,1.45vw,1.5rem); line-height: 1.4; }
-.people-count { font-size: clamp(.82rem,.95vw,1rem); letter-spacing: .14em; }
-.people-count b { font-size: 1.8em; }
 .selected-mark { font-size: .88rem; }
 .question-kicker { font-size: clamp(.75rem,.95vw,1rem); }
 .round-progress span { width: clamp(1.8rem,2.6vw,2.7rem); height: 4px; }
@@ -247,7 +244,6 @@ button { font: inherit; }
   .direction-en { font-size: .76rem; }
   .choice-zh { font-size: clamp(1.35rem,4.7vw,2.2rem); }
   .choice-en { font-size: clamp(.82rem,2.5vw,1.1rem); }
-  .people-count { font-size: .72rem; }
   .question-footer > div p { font-size: .92rem; }
   .question-footer > div span,.lock-hint p { font-size: .58rem !important; }
   .ink-bloom { width: min(90vw,74vh); height: min(74vh,42rem); }
@@ -304,7 +300,6 @@ button { font: inherit; }
   .direction-en { font-size: clamp(.78rem,2.5vw,1rem); }
   .choice-zh { font-size: clamp(1.35rem,4.7vw,2.2rem); }
   .choice-en { max-width: 42vw; font-size: clamp(.88rem,2.8vw,1.15rem); }
-  .people-count { font-size: clamp(.72rem,2vw,.9rem); }
   .question-footer > div p { font-size: clamp(.95rem,3vw,1.2rem); }
   .question-footer > div span,.lock-hint p { font-size: clamp(.68rem,1.8vw,.82rem) !important; }
   .locked-copy > p { font-size: clamp(.9rem,2.5vw,1.1rem); }
@@ -365,8 +360,6 @@ button { font: inherit; }
 .total-votes { display: grid; justify-items: center; gap: .15rem; color: var(--seal); }
 .total-votes b { font: 800 clamp(1.6rem,2.4vw,2.5rem)/1 Arial,sans-serif; }
 .total-votes span { color: rgba(23,20,16,.74); font: 700 clamp(.62rem,.72vw,.78rem)/1.2 Arial,sans-serif; letter-spacing: .14em; }
-.people-count { margin-top: .35vh; font-size: clamp(.65rem,.75vw,.78rem); }
-.people-count b { font-size: 1.3em; }
 .selected-mark { bottom: .45rem; }
 .reveal-brush { width: min(96vw,116rem); height: min(86vh,68rem); }
 .reveal-content.reveal-education { width: min(96rem,88vw); }
@@ -382,7 +375,6 @@ button { font: inherit; }
   .global-votes { margin-top: .45vh; }
   .global-votes b { font-size: clamp(1.65rem,5vw,2.7rem); }
   .global-votes small { font-size: clamp(.6rem,1.8vw,.74rem); }
-  .people-count { font-size: .62rem; }
   .reveal-brush { width: 98vw; height: 90vh; }
   .reveal-content.reveal-education { width: 90vw; }
   .reveal-answer-seal { width: 3.8rem; }
