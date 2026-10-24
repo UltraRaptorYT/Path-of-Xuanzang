@@ -99,7 +99,7 @@ export const station1Rounds: StationRound[] = [
         en: "Find original scriptures and resolve conflicting teachings",
       },
       right: {
-        zh: "冒险度假，寻找法宝",
+        zh: "冒险, 假期: 寻找神奇宝藏",
         en: "Adventure and holiday: find magical treasures",
       },
     },
